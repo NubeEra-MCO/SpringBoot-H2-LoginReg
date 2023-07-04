@@ -1,0 +1,4 @@
+insert into User (user_id,user_fname,user_lname,user_email,user_pass,user_mobile) values (1,'Mujahed','Hussaini','mujahed.trainer@gmail.com','mt@123','9021601089');
+insert into User (user_id,user_fname,user_lname,user_email,user_pass,user_mobile) values (2,'NubeEra','Mujahed','nubeera.mujahed@gmail.com','nm@123','7219851089');
+insert into User (user_id,user_fname,user_lname,user_email,user_pass,user_mobile) values (3,'Syed','Mujahed','mujahed.mca@gmail.com','mm@123','1234567890');
+insert into User (user_id,user_fname,user_lname,user_email,user_pass,user_mobile) values (4,'Info','NubeEra','info@nubeera.com','in@123','1234567890');
