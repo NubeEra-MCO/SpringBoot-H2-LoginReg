@@ -1,13 +1,23 @@
 # User(Registration & Login) with SpringBoot & H2
 User (Registration & Login) using Spring Boot, Data JPA, in-memory H2 db.
 
-## Application Requires/Java Dependencies:
-- Java JDK 1.8
+## Application Requires/Java Dependencies(Windows):
+- Java JDK 1.8 (Download from [here](https://www.openlogic.com/openjdk-downloads?field_java_parent_version_target_id=416&field_operating_system_target_id=436&field_architecture_target_id=391&field_java_package_target_id=396))
+- Maven (Download from [here](https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.zip))
+- Spring Boot
+- Spring Web
+- Spring Data JPA
+- H2 database(embedded)
+
+## Application Requires/Java Dependencies(Linux):
+- Java JDK 1.8 
 - Maven 
 - Spring Boot
 - Spring Web
 - Spring Data JPA
 - H2 database(embedded)
+
+
 
 ## Front end UI:
 - Html,CSS & JSP(Java Server Pages)
@@ -19,10 +29,6 @@ User (Registration & Login) using Spring Boot, Data JPA, in-memory H2 db.
 - JDBC URL:       jdbc:h2:mem:userDb
 - UserName:       sa
 - Password:       123
-
-## Build + Run:
-`$ mvn install`
-`$ mvn clean spring-boot:run`
 
 ## Run the -war / -jar from target:
 
@@ -37,7 +43,17 @@ Make sure to use java 1.8
 ### Linux/Mac OS
 `$ export JAVA_HOME="$(/usr/libexec/java_home -v 1.8)"`
 
+## Build + Run:
+`$ mvn clean `
+
+`$ mvn install`
+
+`$ mvn spring-boot:run`
+
 ## Steps for running different modules:
+if your PORT:  8080 and  then you can follow steps:
+Host: localhost
+
 ### 1)/signup
   - Browse http://localhost:8080/
   - Select signup link.
