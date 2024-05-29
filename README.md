@@ -3,6 +3,7 @@ User (Registration & Login) using Spring Boot, Data JPA, in-memory H2 db.
 
 ## Application Requires/Java Dependencies(Windows):
 - Java JDK 1.8 (Download from [here](https://www.openlogic.com/openjdk-downloads?field_java_parent_version_target_id=416&field_operating_system_target_id=436&field_architecture_target_id=391&field_java_package_target_id=396))
+  ( Java for Alpine # apk add openjdk8)
 - Maven (Download from [here](https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.zip))
 - Spring Boot
 - Spring Web
