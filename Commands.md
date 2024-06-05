@@ -106,6 +106,13 @@ aws iam attach-role-policy \
     --role-name $AWS_EKS_CLUSTER_ROLE_NAME \
     --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
 
+AWS_EKS_CLUSTER_NAME="eks"$PATTERN
+AWS_REGION="us-east-1"
+AWS_ACCOUNT_ID="390480028815"
+AWS_SUBNET_A="subnet-0a393b8709b836510"
+AWS_SUBNET_B="subnet-0a393b8709b836510"
+AWS_SUBNET_C="subnet-0d1a15345c8f8bdf9"
+
 aws eks create-cluster \
   --name $AWS_EKS_CLUSTER_NAME \
   --region $AWS_REGION \
