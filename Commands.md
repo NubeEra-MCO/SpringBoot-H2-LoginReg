@@ -60,12 +60,63 @@ docker run --name contspringbooth2 -p 8080:8080 -d springbooth2:mujahed1
           aws --profile default configure set region $AWS_REGION
           aws --profile default configure set output $AWS_FORMAT 
         }
+    aws s3 ls
      ```
-  4. Connect
      
-       docker login
-     
-  5. Connect to ECR using:
+  4. Connect to ECR using:
      
        aws ecr-public get-login-password \
          --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/n5v3a6h2
+
+      docker build -t sbh2mujahed:mujahed1 .
+
+      docker tag sbh2mujahed:mujahed1 public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
+
+      docker push public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
+
+
+ 5. Store Container Registry Image URL:     public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
+
+ 6. EKS Cluster
+
+bash ```
+      PATTERN="mujahed1"
+      AWS_EKS_CLUSTER_ROLE_NAME="eksrole-"$PATTERN
+
+    cat > trust-policy.json <<EOF {
+  "Version": "2012-10-17",
+  "Statement": [
+	{
+		"Effect": "Allow",
+		"Principal": {
+			"Service": "eks.amazonaws.com"
+		},
+		"Action": "sts:AssumeRole"
+	}
+]
+}
+EOF
+
+aws iam create-role \
+    --role-name $AWS_EKS_CLUSTER_ROLE_NAME \
+    --assume-role-policy-document file://trust-policy.json
+
+
+aws iam attach-role-policy \
+    --role-name $AWS_EKS_CLUSTER_ROLE_NAME \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+aws eks create-cluster \
+  --name $AWS_EKS_CLUSTER_NAME \
+  --region $AWS_REGION \
+  --kubernetes-version 1.29 \
+  --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/$AWS_EKS_CLUSTER_ROLE_NAME \
+  --resources-vpc-config subnetIds=$AWS_SUBNET_A,$AWS_SUBNET_B,$AWS_SUBNET_C
+
+aws eks wait cluster-active \
+  --name $AWS_EKS_CLUSTER_NAME
+
+```
+  
+
+    
