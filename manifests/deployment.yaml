@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: my-app
-        image: aws_account_id.dkr.ecr.us-east-1.amazonaws.com/my-app:latest
+        image: public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
         ports:
         - containerPort: 80
