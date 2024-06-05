@@ -64,7 +64,8 @@ docker run --name contspringbooth2 -p 8080:8080 -d springbooth2:mujahed1
      ```
      
   4. Connect to ECR using:
-     
+
+	
        aws ecr-public get-login-password \
          --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/n5v3a6h2
 
@@ -75,9 +76,9 @@ docker run --name contspringbooth2 -p 8080:8080 -d springbooth2:mujahed1
       docker push public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
 
 
- 5. Store Container Registry Image URL:     public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
+ 4. Store Container Registry Image URL:     public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
 
- 6. EKS Cluster
+ 5. EKS Cluster(Role, Cluster)
 
 bash ```
       PATTERN="mujahed1"
@@ -110,7 +111,7 @@ AWS_EKS_CLUSTER_NAME="eks"$PATTERN
 AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID="390480028815"
 AWS_SUBNET_A="subnet-0a393b8709b836510"
-AWS_SUBNET_B="subnet-0a393b8709b836510"
+AWS_SUBNET_B="subnet-02a1ba991bb2b4337"
 AWS_SUBNET_C="subnet-0d1a15345c8f8bdf9"
 
 aws eks create-cluster \
@@ -127,3 +128,71 @@ aws eks wait cluster-active \
   
 
     
+
+6. Create EKS Node Group(Role, Node Group)
+
+cat > node-trust-policy.json <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+	  {
+		  "Effect": "Allow",
+		  "Principal": {
+			  "Service": "ec2.amazonaws.com"
+		  },
+		  "Action": "sts:AssumeRole"
+	  }
+  ]
+}
+EOF
+AWS_EKS_NODEGROUP_ROLE_NAME="eksng"$PATTERN
+aws iam create-role \
+    --role-name $AWS_EKS_NODEGROUP_ROLE_NAME \
+    --assume-role-policy-document file://node-trust-policy.json
+
+
+
+aws iam attach-role-policy \
+    --role-name $AWS_EKS_NODEGROUP_ROLE_NAME \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+aws iam attach-role-policy \
+    --role-name $AWS_EKS_NODEGROUP_ROLE_NAME \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+aws iam attach-role-policy \
+    --role-name $AWS_EKS_NODEGROUP_ROLE_NAME \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+
+
+AWS_EKS_NODE_GROUP_NAME="ekcngcluster"$PATTERN
+AWS_EKS_NODE_GROUP_INSTANCE_TYPE="t3.medium"
+
+ aws eks create-nodegroup \
+  --cluster-name $AWS_EKS_CLUSTER_NAME \
+  --nodegroup-name $AWS_EKS_NODE_GROUP_NAME \
+  --node-role arn:aws:iam::$AWS_ACCOUNT_ID:role/$AWS_EKS_NODEGROUP_ROLE_NAME \
+  --subnets $AWS_SUBNET_A $AWS_SUBNET_B \
+  --scaling-config minSize=1,maxSize=3,desiredSize=2 \
+  --ami-type AL2_x86_64 \
+  --instance-types $AWS_EKS_NODE_GROUP_INSTANCE_TYPE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
