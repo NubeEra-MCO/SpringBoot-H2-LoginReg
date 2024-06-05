@@ -44,15 +44,14 @@ docker run --name contspringbooth2 -p 8080:8080 -d springbooth2:mujahed1
      1.4 sudo ./aws/install
      
   2. AWS CLI Configure
-    AWS_AK=""
-
-    AWS_SAK=""
-    
-    AWS_REGION="us-east-1"      # North Virginia region
-    
-    AWS_FORMAT="json"
+bash ```
+	#Update Environment Variables
+	export AWS_AK=""
+    	export AWS_SAK=""    
+    	export AWS_REGION="us-east-1"      # North Virginia region    
+    	export AWS_FORMAT="json"
      
-     bash ```
+	# Configure AWS CLI
          configure_aws_cli() {
           echo "Configuring AWS CLI..."
           aws --profile default configure set aws_access_key_id $AWS_AK
@@ -60,8 +59,8 @@ docker run --name contspringbooth2 -p 8080:8080 -d springbooth2:mujahed1
           aws --profile default configure set region $AWS_REGION
           aws --profile default configure set output $AWS_FORMAT 
         }
-    aws s3 ls
-     ```
+    	aws s3 ls     
+```
      
   4. Connect to ECR using:
 
@@ -123,7 +122,6 @@ aws eks create-cluster \
 
 aws eks wait cluster-active \
   --name $AWS_EKS_CLUSTER_NAME
-
 ```
   
 
@@ -177,17 +175,62 @@ AWS_EKS_NODE_GROUP_INSTANCE_TYPE="t3.medium"
 
 
 
+# Connect AWS EKS to Arc-Enabled K8S Cluster
+
+snap install kubectl --classic
+
+kubectl version --client
+
+# Configure kubectl
+aws eks update-kubeconfig \
+    --name $AWS_EKS_CLUSTER_NAME \
+    --region $AWS_REGION
+
+kubectl get nodes
+
+Install AZ:      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+az login
+
+AZ_RG_NAME="rg"$PATTERN
+AZ_LOCATION="eastus"
+
+az group create \
+    --name $AZ_RG_NAME  \
+    --location $AZ_LOCATION
+
+
+#Finding Correlation ID --> EKS Cluster
+az monitor activity-log list \
+    --resource-group $AZ_RG_NAME \
+    --max-events 5 | grep correlationId
+
+Correlation="5d6e8d0a-f3a4-4dd6-afea-8989f27bedd3"
+
+
+az connectedk8s connect \
+    --name "Arc-EKS-mujahed1" \
+    --resource-group $AZ_RG_NAME \
+    --location $AZ_LOCATION \
+    --tags "Project=poc-arc-eks" \
+    --correlation-id $Correlation
+
+# Verify Connected or not
+az connectedk8s list \
+    --resource-group $AZ_RG_NAME \
+    --output table
+
+
+kubectl get deployments,pods -n azure-arc
+
+az connectedk8s delete \
+    -n "Arc-EKS-Demo" \
+    -g  $AZ_RG_NAME \
+    --force
 
 
 
-
-
-
-
-
-
-
-
+ az connectedk8s connect --name Arc-EKS-mujahed1 --resource-group rgmujahed1
 
 
 
