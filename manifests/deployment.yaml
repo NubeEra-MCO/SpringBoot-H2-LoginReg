@@ -18,4 +18,4 @@ spec:
       - name: my-app
         image: public.ecr.aws/n5v3a6h2/sbh2mujahed:mujahed1
         ports:
-        - containerPort: 80
+        - containerPort: 8080
