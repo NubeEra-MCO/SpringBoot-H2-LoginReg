@@ -57,7 +57,7 @@ jobs:
         file: ./Dockerfile
         builder: ${{ steps.buildx.outputs.name }}
         push: true
-        tags: ushamandya/simplewhale:latest
+        tags: mujahed/springboot-loginreg-h2:v1
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
         
