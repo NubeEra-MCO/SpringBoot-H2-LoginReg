@@ -43,7 +43,7 @@ jobs:
         run: |
           TOKEN=$(curl -s -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=gha-token" | jq -r '.token')
           echo "TOKEN=$TOKEN" >> $GITHUB_ENV
-          echo "Generated SonarQube token"
+          echo "Generated SonarQube token: $TOKEN"
 
       # Build and analyze with Maven and SonarQube
       # - name: Build and SonarQube Scan
