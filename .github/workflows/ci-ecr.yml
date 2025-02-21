@@ -48,6 +48,13 @@ jobs:
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # Step to read the version from version-app.txt
+    - name: Read version from version-app.txt
+      id: version
+      run: |
+        VERSION=$(cat version-app.txt | tr -d '[:space:]')  # Remove whitespace/newlines
+        echo "VERSION=$VERSION" >> $GITHUB_ENV  # Set VERSION as an environment variable
     
     - name: Build and push
       id: docker_build
@@ -57,7 +64,7 @@ jobs:
         file: ./Dockerfile
         builder: ${{ steps.buildx.outputs.name }}
         push: true
-        tags: mujahed/springboot-loginreg-h2:v1
+        tags: ${{ secrets.DOCKER_USERNAME }}/springboot-loginreg-h2:${{ env.VERSION }}  # Use the version from the env variable
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
         
