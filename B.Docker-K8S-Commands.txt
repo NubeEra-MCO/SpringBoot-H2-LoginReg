@@ -1,0 +1,98 @@
+# A. Push Image to ECR
+
+apt install -y docker.io
+sudo chmod 777 /var/run/docker.sock
+
+sudo docker build -t springboot-h2-loginreg:v1 .
+
+springbooth2
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws --version
+
+aws configure
+AK:					XXXAQQABDEZL6MQLXXXX
+SAK:				Umso/GlxgqVU8qsulhYhTzY77yy+JyMLc8cIXXXX
+Default Region: 	us-east-1
+
+
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 034362041000.dkr.ecr.us-east-1.amazonaws.com
+
+docker tag springboot-h2-loginreg:v1 034362041000.dkr.ecr.us-east-1.amazonaws.com/springbooth2:v1
+
+docker push 034362041000.dkr.ecr.us-east-1.amazonaws.com/springbooth2:v1
+
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+aws configure
+AK:					XXXAQQABDEZL6MQLXXXX
+SAK:				Umso/GlxgqVU8qsulhYhTzY77yy+JyMLc8cIXXXX
+Default Region: 	us-east-1
+
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 034362041000.dkr.ecr.us-east-1.amazonaws.com
+
+docker pull 034362040000.dkr.ecr.us-east-1.amazonaws.com/springbooth2:v1
+
+docker images
+
+export ECR_PASSWORD=$(aws ecr get-login-password --region us-east-1)
+kubectl create secret docker-registry ecr-registry \
+  --docker-server=034362040000.dkr.ecr.us-east-1.amazonaws.com \
+  --docker-username=AWS \
+  --docker-password=$ECR_PASSWORD \
+  --docker-email=mujahed.mca@example.com
+
+kubectl create secret docker-registry ecr-registry --from-file=.dockerconfigjson=ecr-secret.json --type=kubernetes.io/dockerconfigjson
+
+
+
+cat <<EOF > deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-h2-loginreg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: springboot-h2-loginreg
+  template:
+    metadata:
+      labels:
+        app: springboot-h2-loginreg
+    spec:
+      imagePullSecrets:
+      - name: ecr-registry  # Reference to the secret created
+      containers:
+      - name: springboot-h2-loginreg
+        image: 034362040000.dkr.ecr.us-east-1.amazonaws.com/springbooth2:v1
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-h2-loginreg
+spec:
+  type: NodePort
+  ports:
+  - port: 8080
+    targetPort: 8080
+    nodePort: 30007
+  selector:
+    app: springboot-h2-loginreg
+EOF
+
+
+kubectl apply -f deployment.yaml
+
+
+
+Note: Attach User this permission:  AmazonEC2ContainerRegistryReadOnly
+
