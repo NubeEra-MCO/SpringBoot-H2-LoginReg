@@ -1,6 +1,6 @@
 # .github/workflows/hello-world.yml
 
-name: Hello World Action
+name: SonarQube to Scan Springboot Project 
 
 # When this action will trigger
 on:
@@ -22,6 +22,20 @@ jobs:
           java-version: '17'
           distribution: 'temurin'  # Eclipse Temurin distribution
           cache: 'maven'  # Cache Maven dependencies
+
+      # Cache Maven dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository  # Path to the local Maven repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}  # Cache key based on pom.xml
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # Pull SonarQube Docker image
+      - name: Pull SonarQube Docker image
+        run: |
+          docker pull sonarqube:community
 
       # Start SonarQube server using Docker
       - name: Start SonarQube
