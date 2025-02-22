@@ -5,7 +5,7 @@ pipeline {
     environment {
         // GIT CONFIGURATIONS
         /////////////////////
-        GIT_REPO = "https://github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"  // Added full URL
+        GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"  // Added full URL
         GIT_CREDENTIALS = "github-pat" // The credential ID you set in Jenkins
 
         // DOCKER CONFIGURATIONS
