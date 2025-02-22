@@ -4,11 +4,11 @@ pipeline {
     environment {
         // Git Configurations
         GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"
-        GIT_CREDENTIALS = "github-pat"
+        GIT_CREDENTIALS = "github-pat" 
 
         // Docker Configurations
         DOCKER_IMAGE = 'springboot-loginreg-h2'
-        DOCKER_IMAGE_VERSION = 'v1'
+        DOCKER_IMAGE_VERSION = 'v1' 
         DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials'
     }
 
@@ -75,24 +75,9 @@ pipeline {
             }
         }
 
-        // 6. Docker Login
-        stage('Docker Login') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        sh '''
-                            echo "Logging into Docker Hub..."
-                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        '''
-                    }
-                }
-            }
-        }
-
-        // Uncomment these stages if you want to enable Docker build & push
-
+        // Uncomment these stages if needed
         /*
-        // 7. Check if Docker is Installed
+        // 6. Check if Docker is Installed
         stage('Check Docker') {
             steps {
                 script {
@@ -108,7 +93,7 @@ pipeline {
             }
         }
 
-        // 8. Build Docker Image
+        // 7. Build Docker Image
         stage('Build Docker Image') {
             steps {
                 script {
@@ -122,7 +107,7 @@ pipeline {
             }
         }
 
-        // 9. Push Docker Image to Docker Hub
+        // 8. Push Docker Image to Docker Hub
         stage('Push Docker Image') {
             steps {
                 script {
@@ -142,10 +127,7 @@ pipeline {
 
     post {
         always {
-            script {
-                // Optionally, clean up the workspace
-                cleanWs()
-            }
+            cleanWs()
         }
     }
 }
