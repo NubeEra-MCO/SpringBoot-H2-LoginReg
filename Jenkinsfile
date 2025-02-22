@@ -1,69 +1,69 @@
-
 pipeline {
     agent any
 
     environment {
-        // GIT CONFIGURATIONS
-        /////////////////////
-        GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"  // Added full URL
-        GIT_CREDENTIALS = "github-pat" // The credential ID you set in Jenkins
+        // Git Configurations
+        GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"
+        GIT_CREDENTIALS = "github-pat" 
 
-        // DOCKER CONFIGURATIONS
-        //////////////////////
-        DOCKER_IMAGE = 'springboot-loginreg-h2' // Change this to your Docker Hub repository
+        // Docker Configurations
+        DOCKER_IMAGE = 'springboot-loginreg-h2'
         DOCKER_IMAGE_VERSION = 'v1' 
-        DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials' // Add your Docker credentials ID from Jenkins
+        DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials'
     }
 
     stages {
-        // 1. Clone Repo
+        // 1. Checkout Code
         stage('Checkout') {
             steps {
                 script {
                     withCredentials([string(credentialsId: GIT_CREDENTIALS, variable: 'GIT_TOKEN')]) {
-                        sh "git clone https://oauth:${GIT_TOKEN}@${GIT_REPO}"
+                        sh '''
+                            if [ -d "SpringBoot-H2-LoginReg" ]; then
+                                cd SpringBoot-H2-LoginReg
+                                git pull origin main
+                            else
+                                git clone https://oauth:$GIT_TOKEN@$GIT_REPO
+                            fi
+                        '''
                     }
                 }
             }
         }
 
-        // 2. Clean Project
+        // 2. Maven Clean
         stage('Maven Clean') {
             steps {
-                sh 'echo "----------------------------------------------------------------Cleaning START----------------------------------------------------------------"'
                 sh 'mvn clean'
-                sh 'echo "----------------------------------------------------------------Cleaning END----------------------------------------------------------------"'
             }
         }
 
-        // 3. Generate Artifact
+        // 3. Maven Build
         stage('Maven Install') {
             steps {
-                sh 'echo "----------------------------------------------------------------Building START----------------------------------------------------------------"'
                 sh 'mvn install'
-                sh 'echo "----------------------------------------------------------------Building END------------------------------------------------------------------"'
             }
         }
 
-        // 4. Run Project Locally
+        // 4. Run Spring Boot
         stage('Run Spring Boot') {
             steps {
-                sh 'echo "----------------------------------------------------------------Run START----------------------------------------------------------------"'
-                // sh 'mvn spring-boot:run'
-                sh 'echo "----------------------------------------------------------------Run END------------------------------------------------------------------"'
+                sh 'echo "Skipping Spring Boot Run..."'
             }
         }
 
-        // 5. Test Docker Info
-        stage('Run Docker Container') {
+        // 5. Docker Info (Check if Docker is installed)
+        stage('Check Docker') {
             steps {
                 script {
-                    sh """
-                        echo "----------------------------------------------------------------DOCKER INFO----------------------------------------------------------------"
-                        docker info
-                        # docker run -d -p 8081:8081 --name springboot-app ${DOCKER_IMAGE}:latest  // Commented out code
-                        echo "----------------------------------------------------------------DOCKER INFO----------------------------------------------------------------"
-                    """
+                    sh '''
+                        if ! command -v docker &> /dev/null; then
+                            echo "Docker is not installed. Exiting..."
+                            exit 1
+                        else
+                            docker --version
+                        fi
+                    '''
                 }
             }
         }
@@ -72,22 +72,35 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Navigate to the directory where the Dockerfile is located
-                    dir('SpringBoot-H2-LoginReg') { // Adjust this if your repo structure is different
-                        sh "echo '----------------------------------------------------------------BUILDING START----------------------------------------------------------------'"
-                        sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} ."
-                        sh "echo '----------------------------------------------------------------BUILDING END----------------------------------------------------------------'"
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            echo "Building Docker Image..."
+                            docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
+                        '''
+                    }
+                }
+            }
+        }
+
+        // 7. Push Docker Image
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: DOCKER_CREDENTIALS, variable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "Logging into Docker Hub..."
+                            echo $DOCKER_PASS | docker login -u mauryaajay1661 --password-stdin
+                            docker tag ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
+                            docker push mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
+                        '''
                     }
                 }
             }
         }
     }
-}
-post {
-    // Cleanup actions
-    always {
-        script {
-            // Optionally, you can clean up the workspace
+
+    post {
+        always {
             cleanWs()
         }
     }
