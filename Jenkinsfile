@@ -41,9 +41,13 @@ pipeline {
         // 3. Maven Build
         stage('Maven Install') {
             steps {
-                sh 'mvn install'
+                sh '''
+                    mvn clean install
+                    ls -l target/  # Verify JAR is created
+                '''
             }
         }
+
 
         // 4. Check Docker Images
         stage('Check Docker Images') {
