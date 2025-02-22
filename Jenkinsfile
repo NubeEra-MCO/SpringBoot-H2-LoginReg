@@ -21,9 +21,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: GIT_CREDENTIALS, variable: 'GIT_TOKEN')]) {
-                        sh 'echo "----------------------------------------------------------------Clone START----------------------------------------------------------------"'
-                        sh "git clone https://oauth:${GIT_TOKEN}@${GIT_REPO}"  // Corrected repo URL
-                        sh 'echo "----------------------------------------------------------------Clone END----------------------------------------------------------------"'
+                        sh "git clone https://oauth:${GIT_TOKEN}@${GIT_REPO}"
                     }
                 }
             }
