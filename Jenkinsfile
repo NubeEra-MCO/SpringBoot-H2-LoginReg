@@ -31,12 +31,12 @@ pipeline {
             }
         }
 
-        // // 2. Maven Clean
-        // stage('Maven Clean') {
-        //     steps {
-        //         sh 'mvn clean'
-        //     }
-        // }
+        // 2. Maven Clean
+        stage('Maven Clean') {
+            steps {
+                sh 'mvn clean'
+            }
+        }
 
         // // 3. Maven Build
         // stage('Maven Install') {
