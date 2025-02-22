@@ -74,6 +74,20 @@ pipeline {
                 }
             }
         }
+        
+                // 6. Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            echo "Building Docker Image..."
+                            docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
+                        '''
+                    }
+                }
+            }
+        }
 
         // Uncomment these stages if needed
         /*
