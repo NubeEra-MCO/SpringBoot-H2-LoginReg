@@ -38,12 +38,12 @@ pipeline {
             }
         }
 
-        // // 3. Maven Build
-        // stage('Maven Install') {
-        //     steps {
-        //         sh 'mvn install'
-        //     }
-        // }
+        // 3. Maven Build
+        stage('Maven Install') {
+            steps {
+                sh 'mvn install'
+            }
+        }
 
         // // 4. Run Spring Boot
         // stage('Run Spring Boot') {
