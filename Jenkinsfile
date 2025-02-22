@@ -21,7 +21,7 @@ pipeline {
                         sh '''
                             if [ -d "SpringBoot-H2-LoginReg" ]; then
                                 cd SpringBoot-H2-LoginReg
-                                git pull origin main
+                                git pull origin ajay
                             else
                                 git clone https://oauth:$GIT_TOKEN@$GIT_REPO
                             fi
