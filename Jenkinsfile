@@ -75,6 +75,20 @@ pipeline {
             }
         }
 
+
+         stage('Docker Login') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "Logging into Docker Hub..."
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        '''
+                    }
+                }
+            }
+        }
+
         // // 4. Run Spring Boot
         // stage('Run Spring Boot') {
         //     steps {
