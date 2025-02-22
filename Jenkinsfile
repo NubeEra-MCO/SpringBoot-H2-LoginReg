@@ -57,6 +57,24 @@ pipeline {
             }
         }
 
+
+         stage('Check Dockerfile') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            if [ -f Dockerfile ]; then
+                                echo "✅ Dockerfile found!"
+                            else
+                                echo "❌ ERROR: Dockerfile not found!"
+                                exit 1
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+
         // // 4. Run Spring Boot
         // stage('Run Spring Boot') {
         //     steps {
@@ -111,9 +129,5 @@ pipeline {
         // }
     }
 
-    post {
-        always {
-            cleanWs()
-        }
-    }
+
 }
