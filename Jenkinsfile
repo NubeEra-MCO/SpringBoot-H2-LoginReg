@@ -45,6 +45,18 @@ pipeline {
             }
         }
 
+
+        stage('Check Docker Images') {
+            steps {
+                script {
+                    sh '''
+                        echo "Listing all existing Docker images..."
+                        docker images
+                    '''
+                }
+            }
+        }
+
         // // 4. Run Spring Boot
         // stage('Run Spring Boot') {
         //     steps {
@@ -66,7 +78,7 @@ pipeline {
         //             '''
         //         }
         //     }
-        // }
+        // } 
 
         // 6. Build Docker Image
         // stage('Build Docker Image') {
