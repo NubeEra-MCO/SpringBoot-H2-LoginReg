@@ -4,11 +4,11 @@ pipeline {
     environment {
         // Git Configurations
         GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"
-        GIT_CREDENTIALS = "github-pat" 
+        GIT_CREDENTIALS = "github-pat"
 
         // Docker Configurations
         DOCKER_IMAGE = 'springboot-loginreg-h2'
-        DOCKER_IMAGE_VERSION = 'v1' 
+        DOCKER_IMAGE_VERSION = 'v1'
         DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials'
     }
 
@@ -45,7 +45,7 @@ pipeline {
             }
         }
 
-
+        // 4. Check Docker Images
         stage('Check Docker Images') {
             steps {
                 script {
@@ -57,8 +57,8 @@ pipeline {
             }
         }
 
-
-         stage('Check Dockerfile') {
+        // 5. Check Dockerfile
+        stage('Check Dockerfile') {
             steps {
                 script {
                     dir('SpringBoot-H2-LoginReg') {
@@ -75,8 +75,8 @@ pipeline {
             }
         }
 
-
-         stage('Docker Login') {
+        // 6. Docker Login
+        stage('Docker Login') {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
@@ -89,59 +89,63 @@ pipeline {
             }
         }
 
-        // // 4. Run Spring Boot
-        // stage('Run Spring Boot') {
-        //     steps {
-        //         sh 'echo "Skipping Spring Boot Run..."'
-        //     }
-        // }
+        // Uncomment these stages if you want to enable Docker build & push
 
-        // 5. Docker Info (Check if Docker is installed)
-        // stage('Check Docker') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //                 if ! command -v docker &> /dev/null; then
-        //                     echo "Docker is not installed. Exiting..."
-        //                     exit 1
-        //                 else
-        //                     docker --version
-        //                 fi
-        //             '''
-        //         }
-        //     }
-        // } 
+        /*
+        // 7. Check if Docker is Installed
+        stage('Check Docker') {
+            steps {
+                script {
+                    sh '''
+                        if ! command -v docker &> /dev/null; then
+                            echo "❌ Docker is not installed. Exiting..."
+                            exit 1
+                        else
+                            docker --version
+                        fi
+                    '''
+                }
+            }
+        }
 
-        // 6. Build Docker Image
-        // stage('Build Docker Image') {
-        //     steps {
-        //         script {
-        //             dir('SpringBoot-H2-LoginReg') {
-        //                 sh '''
-        //                     echo "Building Docker Image..."
-        //                     docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
+        // 8. Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            echo "Building Docker Image..."
+                            docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
+                        '''
+                    }
+                }
+            }
+        }
 
-        // 7. Push Docker Image
-        // stage('Push Docker Image') {
-        //     steps {
-        //         script {
-        //             withCredentials([string(credentialsId: DOCKER_CREDENTIALS, variable: 'DOCKER_PASS')]) {
-        //                 sh '''
-        //                     echo "Logging into Docker Hub..."
-        //                     echo $DOCKER_PASS | docker login -u mauryaajay1661 --password-stdin
-        //                     docker tag ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
-        //                     docker push mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
-        //                 '''
-        //             }
-        //         }
-        //     }
-        // }
+        // 9. Push Docker Image to Docker Hub
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: DOCKER_CREDENTIALS, variable: 'DOCKER_PASS')]) {
+                        sh '''
+                            echo "Logging into Docker Hub..."
+                            echo $DOCKER_PASS | docker login -u mauryaajay1661 --password-stdin
+                            docker tag ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
+                            docker push mauryaajay1661/${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
+                        '''
+                    }
+                }
+            }
+        }
+        */
     }
 
-
+    post {
+        always {
+            script {
+                // Optionally, clean up the workspace
+                cleanWs()
+            }
+        }
+    }
 }
