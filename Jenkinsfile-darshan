@@ -1,0 +1,112 @@
+pipeline {
+    agent any
+
+    environment {
+        // GIT CONFIGURATIONS
+        GIT_REPO = "github.com/NubeEra-MCO/SpringBoot-H2-LoginReg.git"
+        GIT_CREDENTIALS = "github-pat" // The credential ID set in Jenkins
+
+        // DOCKER CONFIGURATIONS
+        DOCKER_IMAGE = 'springboot-loginreg-h2' // Docker image name
+        DOCKER_IMAGE_VERSION = 'v2'
+        DOCKER_CREDENTIALS = 'docker-pat-darshan' // Docker credentials ID from Jenkins
+    }
+
+    stages {
+        // 1️⃣ Clone Repo
+        stage('Checkout') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: GIT_CREDENTIALS, variable: 'GIT_TOKEN')]) {
+                        deleteDir() // Clean existing workspace to prevent cloning issues
+                        sh 'echo "--------------------------- Clone START ---------------------------"'
+                        sh '''git clone https://oauth:$GIT_TOKEN@${GIT_REPO}'''
+                        sh 'echo "--------------------------- Clone END -----------------------------"'
+                    }
+                }
+            }
+        }
+
+        // 2️⃣ Clean Project with Maven
+        stage('Maven Clean') {
+            steps {
+                dir('SpringBoot-H2-LoginReg') {
+                sh 'echo "-------------------------- Cleaning START --------------------------"'
+                sh 'mvn clean'
+                sh 'echo "--------------------------- Cleaning END ---------------------------"'
+            }
+        }}
+
+        // 3️⃣ Generate Artifact
+        stage('Maven Install') {
+            steps {
+                dir('SpringBoot-H2-LoginReg') {
+                sh 'echo "-------------------------- Build START -----------------------------"'
+                sh 'mvn install'
+                sh 'echo "--------------------------- Build END ------------------------------"'
+            }}
+        }
+
+        // 4️⃣ Run Spring Boot Locally
+       
+
+        // 5️⃣ Docker Info Check
+        stage('Docker Info') {
+            steps {
+                script {
+                    sh '''
+                        echo "--------------------------- DOCKER INFO ---------------------------"
+                        docker info
+                        echo "--------------------------- DOCKER INFO ---------------------------"
+                    '''
+                }
+            }
+        }
+
+        // 6️⃣ Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') { // Ensure you're inside the repo directory
+                        sh 'echo "--------------------- DOCKER BUILD START ---------------------------"'
+                        sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} ."
+                        sh 'echo "---------------------- DOCKER BUILD END ----------------------------"'
+                    }
+                }
+            }
+        }
+
+        // 7️⃣ Push Docker Image (Optional)
+        // 7️⃣ Push Docker Image (Fixed)
+stage('Push Docker Image') {
+    steps {
+        script {
+            withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                sh 'echo "---------------------- DOCKER LOGIN START ---------------------------"'
+                sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                sh 'echo "---------------------- DOCKER LOGIN END -----------------------------"'
+
+                // Tag the image with your Docker Hub username
+                sh "docker tag springboot-loginreg-h2:${DOCKER_IMAGE_VERSION} $DOCKER_USER/springboot-loginreg-h2:${DOCKER_IMAGE_VERSION}"
+
+                // Push the tagged image
+                sh "docker push $DOCKER_USER/springboot-loginreg-h2:${DOCKER_IMAGE_VERSION}"
+                
+                sh 'echo "---------------------- DOCKER PUSH COMPLETE -------------------------"'
+                sh "docker logout"
+            }
+        }
+    }
+}
+
+    }
+
+    post {
+        // Cleanup workspace after job completion
+        always {
+            script {
+                cleanWs() // Cleans up the workspace after the job finishes
+            }
+        }
+    }
+}
