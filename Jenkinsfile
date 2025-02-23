@@ -7,9 +7,9 @@ pipeline {
         GIT_CREDENTIALS = "github-pat" 
 
         // Docker Configurations
-        DOCKER_IMAGE = 'springboot-loginreg-h2'
-        DOCKER_IMAGE_VERSION = 'v1' 
-        DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials'
+        // DOCKER_IMAGE = 'springboot-loginreg-h2'
+        // DOCKER_IMAGE_VERSION = 'v1' 
+        // DOCKER_CREDENTIALS = 'docker-hub-mujahed-credentials'
     }
 
     stages {
