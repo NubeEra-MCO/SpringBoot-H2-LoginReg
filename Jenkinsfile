@@ -79,7 +79,7 @@ pipeline {
             }
         }
         
-                // 6. Build Docker Image
+                // 6. Build Docker Images
         stage('Build Docker Image') {
             steps {
                 script {
