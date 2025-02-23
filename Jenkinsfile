@@ -50,48 +50,48 @@ pipeline {
 
 
         // 4. Check Docker Images
-        stage('Check Docker Images') {
-            steps {
-                script {
-                    sh '''
-                        echo "Listing all existing Docker images..."
-                        docker images
-                    '''
-                }
-            }
-        }
+        // stage('Check Docker Images') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //                 echo "Listing all existing Docker images..."
+        //                 docker images
+        //             '''
+        //         }
+        //     }
+        // }
 
         // 5. Check Dockerfile
-        stage('Check Dockerfile') {
-            steps {
-                script {
-                    dir('SpringBoot-H2-LoginReg') {
-                        sh '''
-                            if [ -f Dockerfile ]; then
-                                echo "✅ Dockerfile found!"
-                            else
-                                echo "❌ ERROR: Dockerfile not found!"
-                                exit 1
-                            fi
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Check Dockerfile') {
+        //     steps {
+        //         script {
+        //             dir('SpringBoot-H2-LoginReg') {
+        //                 sh '''
+        //                     if [ -f Dockerfile ]; then
+        //                         echo "✅ Dockerfile found!"
+        //                     else
+        //                         echo "❌ ERROR: Dockerfile not found!"
+        //                         exit 1
+        //                     fi
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
         
                 // 6. Build Docker Images
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    dir('SpringBoot-H2-LoginReg') {
-                        sh '''
-                            echo "Building Docker Image..."
-                            docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
-                        '''
-                    }
-                }
-            }
-        }
+        // stage('Build Docker Image') {
+        //     steps {
+        //         script {
+        //             dir('SpringBoot-H2-LoginReg') {
+        //                 sh '''
+        //                     echo "Building Docker Image..."
+        //                     docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
+        //                 '''
+        //             }
+        //         }
+        //     }
+        // }
 
         // Uncomment these stages if needed
         /*
