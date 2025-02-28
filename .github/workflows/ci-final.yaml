@@ -1,0 +1,123 @@
+name: CI (Action, Java, Maven, Docker, ECR, SonarQube)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Clone Current Repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Pull and Start SonarQube in Docker
+        run: |
+          docker pull sonarqube:community
+          docker run -d --name sonarqube -p 9000:9000 -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true sonarqube:community
+
+      - name: Wait for SonarQube to be ready
+        run: |
+          timeout 120s bash -c "until curl -s http://localhost:9000/api/system/status | grep -q 'UP'; do sleep 5; echo 'Waiting for SonarQube...'; done"
+          echo "SonarQube is up and running!"
+
+      - name: Generate SonarQube Token
+        id: sonar_token
+        run: |
+          TOKEN=$(curl -s -u admin:admin -X POST "http://localhost:9000/api/user_tokens/generate?name=gha-token" | jq -r '.token')
+          echo "SONAR_TOKEN=$TOKEN" >> $GITHUB_ENV
+
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.projectKey=my-springboot-app \
+            -Dsonar.projectName="SpringBoot Security Scan"
+
+      - name: Fail the Build if SonarQube Finds Vulnerabilities
+        run: |
+          STATUS=$(curl -s -u admin:$SONAR_TOKEN "http://localhost:9000/api/qualitygates/project_status?projectKey=my-springboot-app" | jq -r '.projectStatus.status')
+          echo "SonarQube Quality Gate Status: $STATUS"
+          if [ "$STATUS" != "OK" ]; then
+            echo "❌ SonarQube found vulnerabilities! Stopping the pipeline."
+            exit 1
+          fi
+
+  build:
+    needs: build-analyze  # Ensure SonarQube scan runs before build
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Clone Current Repo
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Clean with Maven
+        run: mvn clean
+
+      - name: Build with Maven
+        run: mvn install
+
+      - name: Set up Docker Buildx
+        id: buildx 
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login with Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Read version from version-app.txt
+        id: version
+        run: |
+          VERSION=$(cat version-app.txt | tr -d '[:space:]')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV  
+
+      - name: Build and push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/springboot-loginreg-h2:${{ env.VERSION }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
