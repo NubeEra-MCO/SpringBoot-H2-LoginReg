@@ -117,4 +117,4 @@ jobs:
 
       # ✅ Output Image Digest
       - name: Print Image Digest
-        run: echo "Docker Image Digest: ${{ steps.docker_build.outputs.digest }}"
+        run: echo "Docker Image Digest:${{ steps.docker_build.outputs.digest }}"
