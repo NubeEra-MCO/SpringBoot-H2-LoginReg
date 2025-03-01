@@ -54,11 +54,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn clean verify sonar:sonar \
+          # mvn clean verify sonar:sonar \
+            sh "$SONAR_HOME/bin/sonar-scanner 
             -Dsonar.host.url=$SONAR_HOST_URL \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.projectKey=my-springboot-app \
             -Dsonar.projectName="SpringBoot Security Scan"
+           
 
       # ✅ Fail Pipeline if SonarQube Finds Vulnerabilities
       - name: Check SonarQube Quality Gate
