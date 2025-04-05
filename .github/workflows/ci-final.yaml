@@ -1,0 +1,114 @@
+name: CI/CD Pipeline with SonarQube, Maven, and Docker
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ✅ Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # ✅ Set up JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # ✅ Cache Maven Dependencies
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      # ✅ Start SonarQube in a Docker Container
+      - name: Start SonarQube
+        run: |
+          docker pull sonarqube:community
+          docker run -d --name sonarqube -p 9000:9000 -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true sonarqube:community
+
+      # ✅ Wait for SonarQube to be Ready
+      - name: Wait for SonarQube to be Ready
+        run: |
+          echo "Waiting for SonarQube to be available..."
+          timeout 120s bash -c 'until curl -s http://localhost:9000/api/system/status | grep -q "UP"; do sleep 5; echo "Waiting..."; done'
+          echo "SonarQube is up!"
+
+      # ✅ Run SonarQube Scan
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: "http://localhost:9000"
+        run: |
+          mvn clean verify sonar:sonar \
+            -Dsonar.host.url=$SONAR_HOST_URL \
+            -Dsonar.login=$SONAR_TOKEN \
+            -Dsonar.projectKey=my-springboot-app \
+            -Dsonar.projectName="SpringBoot Security Scan"
+
+      # ✅ Check SonarQube Quality Gate
+      - name: Check SonarQube Quality Gate
+        run: |
+          STATUS=$(curl -s -u admin:$SONAR_TOKEN "http://localhost:9000/api/qualitygates/project_status?projectKey=my-springboot-app" | jq -r '.projectStatus.status')
+          echo "SonarQube Quality Gate Status: $STATUS"
+          if [ "$STATUS" != "OK" ]; then
+            echo "❌ SonarQube found vulnerabilities! Stopping the pipeline."
+            exit 1
+          fi
+
+      # ✅ Build Java Project with Maven
+      - name: Build with Maven
+        run: mvn package
+
+      # ✅ Set up Docker Buildx
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      # ✅ Cache Docker Layers
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      # ✅ Log in to Docker Hub
+      - name: Login to Docker
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ✅ Read Version from version-app.txt
+      - name: Read Version from version-app.txt
+        id: version
+        run: |
+          VERSION=$(cat version-app.txt | tr -d '[:space:]')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # ✅ Build & Push Docker Image to Registry
+      - name: Build and Push Docker Image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/springboot-loginreg-h2:${{ env.VERSION }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      # ✅ Output Image Digest
+      - name: Print Image Digest
+        run: echo "Docker Image Digest:${{ steps.docker_build.outputs.digest }}"

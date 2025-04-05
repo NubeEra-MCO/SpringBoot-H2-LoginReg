@@ -41,34 +41,45 @@ pipeline {
         // 3. Maven Build
         stage('Maven Install') {
             steps {
-                sh 'mvn install'
+                sh '''
+                    mvn clean install
+                    ls -l target/  # Verify JAR is created
+                '''
             }
         }
 
-        // 4. Run Spring Boot
-        stage('Run Spring Boot') {
-            steps {
-                sh 'echo "Skipping Spring Boot Run..."'
-            }
-        }
 
-        // 5. Docker Info (Check if Docker is installed)
-        stage('Check Docker') {
+        // 4. Check Docker Images
+        stage('Check Docker Images') {
             steps {
                 script {
                     sh '''
-                        if ! command -v docker &> /dev/null; then
-                            echo "Docker is not installed. Exiting..."
-                            exit 1
-                        else
-                            docker --version
-                        fi
+                        echo "Listing all existing Docker images..."
+                        docker images
                     '''
                 }
             }
         }
 
-        // 6. Build Docker Image
+        // 5. Check Dockerfile
+        stage('Check Dockerfile') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            if [ -f Dockerfile ]; then
+                                echo "✅ Dockerfile found!"
+                            else
+                                echo "❌ ERROR: Dockerfile not found!"
+                                exit 1
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+        
+                // 6. Build Docker Image
         stage('Build Docker Image') {
             steps {
                 script {
@@ -82,7 +93,39 @@ pipeline {
             }
         }
 
-        // 7. Push Docker Image
+        // Uncomment these stages if needed
+        /*
+        // 6. Check if Docker is Installed
+        stage('Check Docker') {
+            steps {
+                script {
+                    sh '''
+                        if ! command -v docker &> /dev/null; then
+                            echo "❌ Docker is not installed. Exiting..."
+                            exit 1
+                        else
+                            docker --version
+                        fi
+                    '''
+                }
+            }
+        }
+
+        // 7. Build Docker Image
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dir('SpringBoot-H2-LoginReg') {
+                        sh '''
+                            echo "Building Docker Image..."
+                            docker build -t ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION} .
+                        '''
+                    }
+                }
+            }
+        }
+
+        // 8. Push Docker Image to Docker Hub
         stage('Push Docker Image') {
             steps {
                 script {
@@ -97,6 +140,7 @@ pipeline {
                 }
             }
         }
+        */
     }
 
     post {
