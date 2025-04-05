@@ -18,8 +18,13 @@ AK:					XXXAQQABDEZL6MQLXXXX
 SAK:				Umso/GlxgqVU8qsulhYhTzY77yy+JyMLc8cIXXXX
 Default Region: 	us-east-1
 
-
+## Authentication
+### ECR
 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 034362041000.dkr.ecr.us-east-1.amazonaws.com
+### HUB
+docker login --username mujahed
+Password:   PAT   
+
 
 docker tag springboot-h2-loginreg:v1 034362041000.dkr.ecr.us-east-1.amazonaws.com/springbooth2:v1
 docker tag springboot-h2-loginreg:v2 mujahed/springboot-h2-loginreg:v2
